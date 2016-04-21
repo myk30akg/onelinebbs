@@ -91,7 +91,7 @@
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <ul class="nav navbar-nav navbar-right">
-<!--                   <li class="hidden">
+                  <!-- <li class="hidden">
                       <a href="#page-top"></a>
                   </li>
                   <li class="page-scroll">
@@ -155,7 +155,7 @@
                 <div class="timeline-label">
                     <h2><a href="#"><?php echo $post_each['nickname']; ?></a> <span><?php echo $post_each['created']; ?></span></h2>
                     <p><?php echo $post_each['comment']; ?></p>
-                    <a href="bbs.php?action=delete&id=<?php echo $post_each['id']; ?>" style="position: absolute; right:10px;bottom:0px;"><i class="fa fa-trash fa-lg"></i>
+                    <a onclick="return confirm('本当に削除しますか？');" href="bbs.php?action=delete&id=<?php echo $post_each['id']; ?>" style="position: absolute; right:10px;bottom:0px;"><i class="fa fa-trash fa-lg"></i>
                 </div>
             </div>
 
