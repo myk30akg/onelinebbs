@@ -1,17 +1,15 @@
 <?php
 
-  //データベースに接続
-  //$dsn = 'mysql:dbname=oneline_bbs;host=localhost';
-  //$user = 'root';
-  //$password = '';
-  //$dbh = new PDO($dsn,$user,$password);
-  //$dbh->query('SET NAMES utf8');
+  require('dbconnect.php');
 
-  $dsn = 'mysql:dbname=LAA0731599-onelinebbs;host=mysql110.phy.lolipop.lan';
-  $user = 'LAA0731599';
-  $password = 'youasian5';
-  $dbh = new PDO($dsn,$user,$password);
-  $dbh->query('SET NAMES utf8');
+  //削除ボタンが押された時の処理
+  if (isset($_GET['action']) && ($_GET['action'] == 'delete')){
+    $deletesql = sprintf ('DELETE FROM posts WHERE id =%s' ,$_GET['id']);
+
+    //DELETE文実行
+    $stmt = $dbh->prepare($deletesql);
+    $stmt->execute();
+}
 
 
   //POST送信が行われたら、下記の処理を実行
@@ -28,7 +26,6 @@
     //INSERT文実行
     $stmt = $dbh->prepare($sql);
     $stmt->execute();
-
 
     
   }
@@ -89,7 +86,7 @@
                   <span class="icon-bar"></span>
                   <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="#page-top"><span class="strong-title"><i class="fa fa-commenting"></i> Oneline bbs</span></a>
+              <a class="navbar-brand" href="#page-top"><span class="strong-title">Oneline Bbs <i class="fa fa-commenting"></i></span></a>
           </div>
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -158,6 +155,7 @@
                 <div class="timeline-label">
                     <h2><a href="#"><?php echo $post_each['nickname']; ?></a> <span><?php echo $post_each['created']; ?></span></h2>
                     <p><?php echo $post_each['comment']; ?></p>
+                    <a href="bbs.php?action=delete&id=<?php echo $post_each['id']; ?>" style="position: absolute; right:10px;bottom:0px;"><i class="fa fa-trash fa-lg"></i>
                 </div>
             </div>
 
