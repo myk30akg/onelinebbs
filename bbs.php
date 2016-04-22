@@ -1,65 +1,81 @@
 <?php
 
-  require('dbconnect.php');
+          require('dbconnect.php');
 
-  //削除ボタンが押された時の処理
-  if (isset($_GET['action']) && ($_GET['action'] == 'delete')){
-    $deletesql = sprintf ('DELETE FROM posts WHERE id =%s' ,$_GET['id']);
+        //削除ボタンが押された時の処理
+          if (isset($_GET['action']) && ($_GET['action'] == 'delete')){
+          // $deletesql = sprintf ('DELETE FROM posts WHERE id =%s' ,$_GET['id']);
 
-    //DELETE文実行
-    $stmt = $dbh->prepare($deletesql);
-    $stmt->execute();
-}
+        //論理削除に変更
+        //Update文
+            $deletesql = sprintf ('UPDATE `posts` SET `delete_flag` = 1 WHERE `id` = %s',$_GET['id']);
 
-
-  //POST送信が行われたら、下記の処理を実行
-  //テストコメント
-  if(isset($_POST) && !empty($_POST)){
-
- 
-    //SQL文作成(INSERT文)
-    // $sql = 'INSERT INTO `posts`(`nickname`, `comment`, `created`) ';
-    // $sql .= 'VALUES (\''.$_POST['nickname'].'\',\''.$_POST['comment'].'\',now())';
-    $sql = sprintf('INSERT INTO `posts`(`nickname`, `comment`, `created`) VALUES (\'%s\',\'%s\',now())',$_POST['nickname'],$_POST['comment']);
+        //DELETE文実行
+          $stmt = $dbh->prepare($deletesql);
+          $stmt->execute();
+      }
 
 
-    //INSERT文実行
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
+        //LIKEが押された時の処理
+          if(isset($_GET['action']) && ($_GET['action'] == 'likes')){
+        //Update文でLikeの数をカウントアップ（インクリメント）, '');
+          $likesql = sprintf ('UPDATE `posts` SET `likes` = `likes` + 1 WHERE `id` = %s', $_GET['id']);
 
-    
-  }
-
-
-  //SQL文作成(SELECT文)
-  $sql = 'SELECT * FROM `posts`';
-  $sql = 'SELECT * FROM posts ORDER BY created DESC';
-  
-  //SELECT文実行
-  $stmt = $dbh->prepare($sql);
-  $stmt->execute();
-
-  //格納する変数の初期化
-  $posts = array();
-
-  while(1){
-
-    //実行結果として得られたデータを取得
-    $rec = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if($rec == false){
-      break;
-    }
-
-    // 取得したデータを配列に格納しておく
-    $posts[] = $rec;
+        }  
 
 
-  }
+        //POST送信が行われたら、下記の処理を実行
+        //テストコメント
+          if(isset($_POST) && !empty($_POST)){
 
-  //データベースから切断
-  $dbh = null;
-?>
+       
+        //SQL文作成(INSERT文)
+        // $sql = 'INSERT INTO `posts`(`nickname`, `comment`, `created`) ';
+        // $sql .= 'VALUES (\''.$_POST['nickname'].'\',\''.$_POST['comment'].'\',now())';
+          $sql = sprintf('INSERT INTO `posts`(`nickname`, `comment`, `created`) VALUES (\'%s\',\'%s\',now())',$_POST['nickname'],$_POST['comment']);
+
+
+        //INSERT文実行
+          $stmt = $dbh->prepare($sql);
+          $stmt->execute();
+
+        //処理の再実行を防ぐために、自画面へリダイレクト（画面移動）
+          header('Location:bbs.php');
+
+          
+        }
+
+
+        //SQL文作成(SELECT文)
+          $sql = 'SELECT * FROM `posts`';
+          $sql = 'SELECT * FROM posts WHERE delete_flag = 0 ORDER BY created DESC';
+
+
+        //SELECT文実行
+          $stmt = $dbh->prepare($sql);
+          $stmt->execute();
+
+        //格納する変数の初期化
+          $posts = array();
+
+        while(1){
+
+          //実行結果として得られたデータを取得
+          $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+
+          if($rec == false){
+            break;
+          }
+
+          // 取得したデータを配列に格納しておく
+          $posts[] = $rec;
+
+
+        }
+
+        //データベースから切断
+        $dbh = null;
+      ?>
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -73,6 +89,7 @@
   <link rel="stylesheet" href="assets/css/form.css">
   <link rel="stylesheet" href="assets/css/timeline.css">
   <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/article.css">
 </head>
 <body>
 
@@ -86,7 +103,7 @@
                   <span class="icon-bar"></span>
                   <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand" href="#page-top"><span class="strong-title">Oneline Bbs <i class="fa fa-commenting"></i></span></a>
+              <a class="navbar-brand" href="#page-top"><span class="strong-title">oneline bbs <i class="fa fa-commenting"></i></span></a>
           </div>
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -153,9 +170,26 @@
                 </div>
 
                 <div class="timeline-label">
-                    <h2><a href="#"><?php echo $post_each['nickname']; ?></a> <span><?php echo $post_each['created']; ?></span></h2>
+                    <h2><a href="#"><?php echo $post_each['nickname']; ?></a> 
+
+
+                    <?php
+                      //一旦日時型に変換(String型からDatetime型へ変換)
+                    $created=strtotime($post_each['created']);
+                    //書式を変換
+                    $created=date('Y年m月d日　H時I分s秒,$created');
+
+
+                    ?>
+
+                      <!-- <span><?php echo $post_each['created']; ?></span> -->
+                      <span><?php echo $created; ?></span>
+
+                    </h2>
                     <p><?php echo $post_each['comment']; ?></p>
-                    <a onclick="return confirm('本当に削除しますか？');" href="bbs.php?action=delete&id=<?php echo $post_each['id']; ?>" style="position: absolute; right:10px;bottom:0px;"><i class="fa fa-trash fa-lg"></i>
+                    <a href="bbs.php?action=like&id=<?php echo $post_each['id']; ?>" ><i class="fa fa-thumbs-o-up" aria-hidden="true"></i> LIKE <?php echo $post_each['likes']; ?></a>
+                    <a onclick="return confirm('本当に削除しますか？');" href="bbs.php?action=delete&id=<?php echo $post_each['id']; ?>" class="trash"> <i class="fa fa-trash fa-lg"></i>
+
                 </div>
             </div>
 
@@ -199,6 +233,3 @@
   <script src="assets/js/form.js"></script>
 </body>
 </html>
-
-
-
